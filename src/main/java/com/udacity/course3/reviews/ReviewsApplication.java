@@ -14,7 +14,7 @@ public class ReviewsApplication {
 
 		try {
 			try (Connection conn = DriverManager.getConnection("jdbc:mysql" +
-					"://localhost:3306/jdnd?user=root&password=Vbs$gh!Jl")) {
+					"://localhost:3306/jdnd?user=root&password=")) {
 				System.out.println("Connected to " + conn.getMetaData().getDatabaseProductName());
 
 				//Seed Data
