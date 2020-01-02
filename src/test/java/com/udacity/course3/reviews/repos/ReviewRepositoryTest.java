@@ -49,7 +49,7 @@ public class ReviewRepositoryTest {
         product = new Product();
         product.setCategory("Action Figure");
         product.setName("Woody");
-        product.setDescription("Toy Story Action Figre");
+        product.setDescription("Toy Story Action Figure");
         review = new Review();
         review.setTitle("Good Review");
         review.setReview("This is a great toy");
@@ -86,10 +86,10 @@ public class ReviewRepositoryTest {
     }
 
     /**
-     * Test find all review by product.
+     * Test find all reviews by product.
      */
     @Test
-    public void testFindAllReviewByProduct() {
+    public void testFindAllByProduct() {
         Product savedProduct = productRepository.save(product);
         review.setProduct(savedProduct);
         Review expectedReview = reviewRepository.save(review);
@@ -99,5 +99,8 @@ public class ReviewRepositoryTest {
         Review actualReview = actualReviewList.get(0);
         assertThat(expectedReview.getId().equals(actualReview.getId()));
     }
+
+
+
 
 }
