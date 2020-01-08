@@ -77,16 +77,19 @@ public class ReviewsController {
      * @return The list of reviews.
      */
     @RequestMapping(value = "/reviews/products/{productId}", method = RequestMethod.GET)
-    public ResponseEntity<List<?>> listReviewsForProduct(@PathVariable("productId") Integer productId) {
-        // find in mysql
-        List<Review> reviews = reviewRepository.findAllByProduct(new Product(productId));
-        // find in mongo
-        Iterable<ReviewDocument> iterReviews = reviewDocumentRepository
-                .findAllById(reviews.stream().map(r -> r.getId()).collect(Collectors.toList()));
-        // convert to list
-        List<ReviewDocument> mongoReviews = StreamSupport.stream(iterReviews.spliterator()
-                , false)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(mongoReviews);
+    public ResponseEntity<List<?>> listReviewsForProduct(@PathVariable(
+            "productId") Integer productId) {
+
+        Optional<Product> optionalProduct = productRepository.findById(productId);
+        if (optionalProduct.isPresent()) {
+
+            List<ReviewDocument> reviewDocs =
+                    reviewDocumentRepository.findAllByProductId(productId);
+            return new ResponseEntity<>(reviewDocs, HttpStatus.OK);
+        }
+        else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
     }
 }
