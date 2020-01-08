@@ -55,22 +55,30 @@ public class CommentsController {
                                                     @RequestBody Comment comment) {
         // find review in mysql
         Optional<Review> review = reviewRepository.findById(reviewId);
-        if (!review.isPresent()) {
-            return ResponseEntity.notFound().build();
+
+        if(review.isPresent()) {
+            comment.setReview(review.get());
         }
-        comment.setReview(review.get());
-        // save in mysql
+        else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        // save comments in MySQL database
         Comment mysqlComment = commentRepository.save(comment);
 
-        // find review in mongo
+        // find review in mongoDB
         Optional<ReviewDocument> mongoReviewOpt = reviewDocumentRepository.findById(reviewId);
-        if (!mongoReviewOpt.isPresent()) {
-            return ResponseEntity.notFound().build();
+
+        if (mongoReviewOpt.isPresent()) {
+            ReviewDocument mongoReview = mongoReviewOpt.get();
+            mongoReview.addComments(mysqlComment);
+
+            // save in mongo
+            return ResponseEntity.ok(reviewDocumentRepository.save(mongoReview));
         }
-        ReviewDocument mongoReview = mongoReviewOpt.get();
-        mongoReview.addComments(mysqlComment);
-        // save in mongo
-        return ResponseEntity.ok(reviewDocumentRepository.save(mongoReview));
+        else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     /**
