@@ -2,9 +2,13 @@ package com.udacity.course3.reviews.controller;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import javax.validation.Valid;
 
+import com.udacity.course3.reviews.entities.ReviewDocument;
+import com.udacity.course3.reviews.repos.ReviewDocumentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +35,10 @@ public class ReviewsController {
 
     @Autowired
     private ReviewRepository reviewRepository;
+
+    @Autowired
+    private ReviewDocumentRepository reviewDocumentRepository;
+
     /**
      * Creates a review for a product.
      * <p>
@@ -43,15 +51,23 @@ public class ReviewsController {
      * @return The created review or 404 if product id is not found.
      */
     @RequestMapping(value = "/reviews/products/{productId}", method = RequestMethod.POST)
-    public ResponseEntity<Review> createReviewForProduct(@PathVariable("productId") Integer productId,
+    public ResponseEntity<?> createReviewForProduct(@PathVariable("productId") Integer productId,
                                                          @Valid @RequestBody Review review) {
         Optional<Product> optional = productRepository.findById(productId);
         if (optional.isPresent()) {
             Product product = optional.get();
             review.setProduct(product);
-            return ResponseEntity.ok(reviewRepository.save(review));
+
+            // save to mysql
+            Review mysqlReview = reviewRepository.save(review);
+            // save to mongo
+            ReviewDocument mongoReview =
+                    reviewDocumentRepository.save(new ReviewDocument(mysqlReview));
+            return ResponseEntity.ok(mongoReview);
         }
-        return new ResponseEntity<Review>(HttpStatus.NOT_FOUND);
+        else {
+            return new ResponseEntity<Review>(HttpStatus.NOT_FOUND);
+        }
     }
 
     /**
@@ -61,11 +77,16 @@ public class ReviewsController {
      * @return The list of reviews.
      */
     @RequestMapping(value = "/reviews/products/{productId}", method = RequestMethod.GET)
-    public ResponseEntity<List<Review>> listReviewsForProduct(@PathVariable("productId") Integer productId) {
-        Product findProduct = new Product();
-        findProduct.setId(productId);
-        if ((reviewRepository.findAllByProduct(findProduct)).isEmpty())
-            return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(reviewRepository.findAllByProduct(findProduct));
+    public ResponseEntity<List<?>> listReviewsForProduct(@PathVariable("productId") Integer productId) {
+        // find in mysql
+        List<Review> reviews = reviewRepository.findAllByProduct(new Product(productId));
+        // find in mongo
+        Iterable<ReviewDocument> iterReviews = reviewDocumentRepository
+                .findAllById(reviews.stream().map(r -> r.getId()).collect(Collectors.toList()));
+        // convert to list
+        List<ReviewDocument> mongoReviews = StreamSupport.stream(iterReviews.spliterator()
+                , false)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(mongoReviews);
     }
 }

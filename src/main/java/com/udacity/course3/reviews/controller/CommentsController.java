@@ -1,10 +1,13 @@
 package com.udacity.course3.reviews.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import javax.validation.Valid;
 
+import com.udacity.course3.reviews.entities.ReviewDocument;
+import com.udacity.course3.reviews.repos.ReviewDocumentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +36,10 @@ public class CommentsController {
 
     @Autowired
     private ReviewRepository reviewRepository;
+
+    @Autowired
+    private ReviewDocumentRepository reviewDocumentRepository;
+
     /**
      * Creates a comment for a review.
      *
@@ -44,14 +51,26 @@ public class CommentsController {
      * @param reviewId The id of the review.
      */
     @RequestMapping(value = "/reviews/{reviewId}", method = RequestMethod.POST)
-    public ResponseEntity<Comment> createCommentForReview(@PathVariable("reviewId") Integer reviewId,
-                                                          @Valid @RequestBody Comment comment) {
-        Optional<Review> optional = reviewRepository.findById(reviewId);
-        if (optional.isPresent()) {
-            comment.setReview(optional.get());
-            return ResponseEntity.ok(commentRepository.save(comment));
+    public ResponseEntity<?> createCommentForReview(@PathVariable("reviewId") Integer reviewId,
+                                                    @RequestBody Comment comment) {
+        // find review in mysql
+        Optional<Review> review = reviewRepository.findById(reviewId);
+        if (!review.isPresent()) {
+            return ResponseEntity.notFound().build();
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        comment.setReview(review.get());
+        // save in mysql
+        Comment mysqlComment = commentRepository.save(comment);
+
+        // find review in mongo
+        Optional<ReviewDocument> mongoReviewOpt = reviewDocumentRepository.findById(reviewId);
+        if (!mongoReviewOpt.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        ReviewDocument mongoReview = mongoReviewOpt.get();
+        mongoReview.addComments(mysqlComment);
+        // save in mongo
+        return ResponseEntity.ok(reviewDocumentRepository.save(mongoReview));
     }
 
     /**
@@ -64,11 +83,19 @@ public class CommentsController {
      * @param reviewId The id of the review.
      */
     @RequestMapping(value = "/reviews/{reviewId}", method = RequestMethod.GET)
-    public ResponseEntity<List<Comment>> listCommentsForReview(@PathVariable("reviewId") Integer reviewId) {
-        Review findReview = new Review();
-        findReview.setId(reviewId);
-        if ((commentRepository.findAllByReview(findReview)).isEmpty())
-            return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(commentRepository.findAllByReview(findReview));
+    public List<?> listCommentsForReview(@PathVariable("reviewId") Integer reviewId) {
+
+        List<Comment> comments =
+                commentRepository.findAllByReview(new Review(reviewId));
+
+        Optional<ReviewDocument> mongoReviewOpt = reviewDocumentRepository.findById(reviewId);
+
+        if (!mongoReviewOpt.isPresent()) {
+            return new ArrayList<>();
+        }
+
+        ReviewDocument mongoReview = mongoReviewOpt.get();
+
+        return mongoReview.getComments();
     }
 }

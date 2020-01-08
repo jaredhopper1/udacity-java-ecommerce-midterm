@@ -27,12 +27,8 @@ public class Review {
     public Review() {
     }
 
-    public Review(Integer id, String title, String review, Product product) {
-        super();
+    public Review(Integer id) {
         this.id = id;
-        this.title = title;
-        this.review = review;
-        this.product = product;
     }
 
     public Integer getId() {

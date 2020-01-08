@@ -1,9 +1,12 @@
 package com.udacity.course3.reviews.entities;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import javax.persistence.Id;
 import java.util.ArrayList;
 import java.util.List;
 
+@Document("reviews")
 public class ReviewDocument {
     @Id
     private Integer id;
