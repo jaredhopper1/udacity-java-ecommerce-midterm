@@ -8,9 +8,7 @@ public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @NotNull(message = "Please Provide Heading")
     private String heading;
-    @NotNull(message = "Please Provide Comment")
     @Column(name = "comment_text")
     private String comment;
     @ManyToOne

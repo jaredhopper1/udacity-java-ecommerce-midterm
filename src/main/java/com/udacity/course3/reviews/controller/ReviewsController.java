@@ -60,6 +60,7 @@ public class ReviewsController {
 
             // save to mysql
             Review mysqlReview = reviewRepository.save(review);
+
             // save to mongo
             ReviewDocument mongoReview =
                     reviewDocumentRepository.save(new ReviewDocument(mysqlReview));
