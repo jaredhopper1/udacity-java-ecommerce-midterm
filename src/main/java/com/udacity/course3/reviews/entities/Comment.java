@@ -1,7 +1,7 @@
 package com.udacity.course3.reviews.entities;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
+
 
 @Entity
 public class Comment {
