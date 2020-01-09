@@ -1,6 +1,7 @@
 package com.udacity.course3.reviews.repos;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,11 +48,11 @@ public class ReviewDocumentRepositoryTest {
     @Test
     public void TestGetReview() {
       //new review document
-       Product product = new Product();
-       product.setId(1);
-       product.setName("Forky");
-       product.setDescription("It is a fork");
-       product.setCategory("Action figure");
+        Product product = new Product();
+        product.setId(1);
+        product.setName("Forky");
+        product.setDescription("It is a fork");
+        product.setCategory("Action figure");
 
        ReviewDocument review = new ReviewDocument();
        review.setId(1);
@@ -75,9 +76,68 @@ public class ReviewDocumentRepositoryTest {
         assertEquals("test", returnedReviewsContent.getTitle());
         assertEquals("Testing review", returnedReviewsContent.getReview());
 
+    }
 
+    @Test
+    public void testPostComments() {
+        Product product = new Product();
+        product.setId(1);
+        product.setName("Forky");
+        product.setDescription("It is a fork");
+        product.setCategory("Action figure");
 
+        ReviewDocument review = new ReviewDocument();
+        review.setId(1);
+        review.setTitle("test");
+        review.setReview("Testing review");
+        review.setProduct(product);
+
+        Comment comment = new Comment();
+        comment.setId(1);
+        comment.setHeading("Test Comment");
+        comment.setComment("This is a comment body");
+        List<Comment> commentList = new ArrayList<Comment>();
+        commentList.add(comment);
+        review.setComments(commentList);
+
+        Assert.assertNotNull(commentList);
+        }
+
+    @Test
+    public void testGetComments() {
+
+        Product product = new Product();
+        product.setId(1);
+        product.setName("Forky");
+        product.setDescription("It is a fork");
+        product.setCategory("Action figure");
+
+        ReviewDocument review = new ReviewDocument();
+        review.setId(1);
+        review.setTitle("test");
+        review.setReview("Testing review");
+        review.setProduct(product);
+
+        Comment comment = new Comment();
+        comment.setId(1);
+        comment.setHeading("Test Comment");
+        comment.setComment("This is a comment body");
+        List<Comment> commentList = new ArrayList<Comment>();
+        commentList.add(comment);
+        review.setComments(commentList);
+
+        Assert.assertNotNull(reviewDocumentRepository.save(review));
+
+        //comments from the database
+        Assert.assertNotNull(reviewDocumentRepository.findById(1).get().getComments());
+        List<Comment> retrievedComments =
+                reviewDocumentRepository.findById(1).get().getComments();
+        assertEquals(1, retrievedComments.size());
+        assertEquals(1, retrievedComments.get(0).getId().intValue());
+        assertEquals("Test Comment", retrievedComments.get(0).getHeading());
+        assertEquals("This is a comment body", retrievedComments.get(0).getComment());
+    }
 
 
     }
-}
+
