@@ -76,7 +76,7 @@
 				<configuration>
 					<url>jdbc:mysql://localhost:3306/jdnd</url>
 					<user>root</user>
-					<password></password>
+					<password>Vbs$gh!Jl</password>
 				</configuration>
 			</plugin>
 		</plugins>
